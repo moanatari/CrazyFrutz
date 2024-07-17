@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine à sous</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .slot-machine {
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+            position: relative;
+        }
+        .slot {
+            font-size: 3rem;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin: 0 10px;
+            padding: 20px;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        .fade-in-down {
+            animation: fadeInDown 0.5s forwards;
+        }
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
+        }
+        @keyframes emojiRain {
+            0% {
+                transform: translateY(-100px);
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh);
+                opacity: 0;
+            }
+        }
+        .emoji-rain {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            pointer-events: none;
+            animation: emojiRain 5s linear infinite;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .score {
+            font-size: 1.5rem;
+            position: relative;
+        }
+        .score.animated {
+            animation: scoreAnimation 1s ease;
+        }
+        @keyframes scoreAnimation {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .score .increment {
+            position: absolute;
+            top: -20px;
+            right: 0;
+            font-size: 1rem;
+            color: green;
+            animation: incrementAnimation 1s ease;
+        }
+        @keyframes incrementAnimation {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="slot-machine">
+        <div class="header">
+            <div class="title">CrazyFrutzzz</div>
+            <div class="score" id="score">Score: 0</div>
+        </div>
+        <div class="row justify-content-center" style="margin-top: 20px;">
+            <div class="slot" id="slot1">🍎</div>
+            <div class="slot" id="slot2">🍌</div>
+            <div class="slot" id="slot3">🍒</div>
+        </div>
+        <div class="controls">
+            <button class="btn btn-primary" id="spinButton" onclick="spin()">Spin</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+      <div class="col-md-4 d-flex align-items-center">
+        
+        <span class="mb-3 mb-md-0 text-body-secondary">&copy; CrazyFrutzzz v1.2</span>
+      </div>
+  
+      
+    </footer>
+  </div>
+
+<script>
+    // Retrieve score from local storage
+    let score = parseInt(localStorage.getItem('score')) || 0;
+    document.getElementById('score').textContent = `Score: ${score}`;
+
+    let pity = 0;
+
+    initSlots();
+
+    function getRandomFruit() {
+        //const fruits = ['🍎', '🍌', '🍒', '🍇', '🍉', '🍋'];
+        if (pity < 11) {
+             fruits = ['🍎','🍎','🍎', '🍌', '🍌', '🍌', '🍒','⭐','⭐', '🍇', '🍇', '🍉', '🍉', '🍋', '🍋', '🍋', '🍋'];
+        } else if (pity < 31) {
+             fruits = ['🍎','🍎','🍎', '🍌', '🍌', '🍌', '🍒','⭐','⭐', '🍇', '🍇', '🍉', '🍉'];
+        } else {
+             fruits = ['🍒','⭐','⭐', '🍇', '🍇', '🍉', '🍉'];
+        }
+        
+        return fruits[Math.floor(Math.random() * fruits.length)];
+    }
+
+    function createEmojiRain(fruit) {
+        for (let i = 0; i < 30; i++) {
+            const emoji = document.createElement('div');
+            emoji.className = 'emoji-rain';
+            emoji.textContent = fruit;
+            emoji.style.left = Math.random() * 100 + 'vw';
+            emoji.style.animationDuration = Math.random() * 2 + 3 + 's';
+            document.body.appendChild(emoji);
+
+            setTimeout(() => {
+                emoji.remove();
+            }, 6000); // Increased to allow time for emoji to leave the screen
+        }
+    }
+
+    function getFruitValue(fruit) {
+        const values = {
+            '🍒': 100,
+            '🍇': 80,
+            '🍉': 60,
+            '🍎': 40,
+            '🍌': 20,
+            '🍋': 10
+        };
+        return values[fruit] || 0;
+    }
+
+    function animateScoreIncrement(increment) {
+        const scoreElement = document.getElementById('score');
+        const incrementElement = document.createElement('div');
+        incrementElement.className = 'increment';
+        incrementElement.textContent = `+${increment}`;
+        scoreElement.appendChild(incrementElement);
+
+        setTimeout(() => {
+            incrementElement.remove();
+        }, 1000); // Remove the increment animation after 1 second
+
+        scoreElement.classList.add('animated');
+        setTimeout(() => {
+            scoreElement.classList.remove('animated');
+        }, 1000); // Remove the score animation after 1 second
+    }
+
+    function updateScore(increment) {
+        score += increment;
+        localStorage.setItem('score', score);
+        const scoreElement = document.getElementById('score');
+        let currentScore = parseInt(scoreElement.textContent.replace('Score: ', ''));
+        const step = increment / 20;
+
+        const interval = setInterval(() => {
+            currentScore += step;
+            scoreElement.textContent = `Score: ${Math.round(currentScore)}`;
+            if (currentScore >= score) {
+                clearInterval(interval);
+            }
+        }, 50);
+
+        animateScoreIncrement(increment);
+    }
+
+    function checkWin(slot1, slot2, slot3) {
+        const fruits = [slot1.textContent, slot2.textContent, slot3.textContent];
+        const uniqueFruits = [...new Set(fruits)];
+
+        // Check if there are exactly 2 unique fruits and one of them is the star (joker)
+        if (uniqueFruits.length === 2 && uniqueFruits.includes('⭐')) {
+            const nonStarFruit = uniqueFruits.find(fruit => fruit !== '⭐');
+            const fruitValue = getFruitValue(nonStarFruit);
+            updateScore(fruitValue);
+            createEmojiRain(nonStarFruit);
+            pity = 0;
+        } else if (uniqueFruits.length === 1) { // All three fruits are the same
+            const fruitValue = getFruitValue(uniqueFruits[0]);
+            updateScore(fruitValue);
+            createEmojiRain(uniqueFruits[0]);
+            pity = 0;
+        }
+    }
+
+    function spin() {
+
+        pity += 1;
+        //console.log("pity :" + pity)
+        const slot1 = document.getElementById('slot1');
+        const slot2 = document.getElementById('slot2');
+        const slot3 = document.getElementById('slot3');
+        const spinButton = document.getElementById('spinButton');
+
+        // Disable the spin button
+        spinButton.disabled = true;
+
+        // Fade out the old slots
+        slot1.classList.remove('fade-in-down');
+        slot2.classList.remove('fade-in-down');
+        slot3.classList.remove('fade-in-down');
+
+        slot1.classList.add('fade-out');
+        slot2.classList.add('fade-out');
+        slot3.classList.add('fade-out');
+
+        setTimeout(() => {
+            slot1.classList.remove('fade-out');
+            slot2.classList.remove('fade-out');
+            slot3.classList.remove('fade-out');
+
+            // Set new random fruits with fade-in-down effect
+            setTimeout(() => {
+                slot1.textContent = getRandomFruit();
+                slot1.classList.add('fade-in-down');
+            }, 100);
+
+            setTimeout(() => {
+                slot2.textContent = getRandomFruit();
+                slot2.classList.add('fade-in-down');
+            }, 600);
+
+            setTimeout(() => {
+                slot3.textContent = getRandomFruit();
+                slot3.classList.add('fade-in-down');
+
+                setTimeout(() => {
+                    checkWin(slot1, slot2, slot3);
+
+                    // Re-enable the spin button
+                    spinButton.disabled = false;
+                }, 500);
+            }, 1100);
+
+        }, 500); // Wait for fade-out to complete
+    }
+
+    function initSlots(){
+        const slot1 = document.getElementById('slot1');
+        const slot2 = document.getElementById('slot2');
+        const slot3 = document.getElementById('slot3');
+        setTimeout(() => {
+            slot1.classList.add('fade-in-down');
+        }, 100);
+        setTimeout(() => {
+            slot2.classList.add('fade-in-down');
+        }, 600);
+        setTimeout(() => {
+            slot3.classList.add('fade-in-down');
+        }, 1100);
+    }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

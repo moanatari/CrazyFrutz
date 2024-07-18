@@ -139,10 +139,24 @@
 </div>
 
 <div class="container">
+    <div class="slot-machine">
+        <ul>
+            <li> 🍒 : 100 pts </li>
+            <li> 🍇 : 80 pts </li>
+            <li> 🍉 : 60 pts </li>
+            <li> 🍎 : 40 pts </li>
+            <li> 🍌 : 20 pts </li>
+            <li> 🍋 : 10 pts </li>
+            <li> ⭐ : joker </li>
+        </ul>
+    </div>
+</div>
+
+<div class="container">
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
       <div class="col-md-4 d-flex align-items-center">
         
-        <span class="mb-3 mb-md-0 text-body-secondary">&copy; CrazyFrutz v1.3</span>
+        <span class="mb-3 mb-md-0 text-body-secondary">&copy; CrazyFrutz v1.4</span>
       </div>
   
       
@@ -189,6 +203,7 @@
     function getFruitValue(fruit) {
         const values = {
             '🍒': 100,
+            '⭐': 80,
             '🍇': 80,
             '🍉': 60,
             '🍎': 40,
